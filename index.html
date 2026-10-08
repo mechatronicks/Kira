@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'GLIWA';
+      src: url('https://myskotom.ru/files/GLIWA.woff2') format('woff2'),
+           url('https://myskotom.ru/files/GLIWA.woff') format('woff'),
+           url('https://myskotom.ru/files/GLIWA.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #5c1423;
+      font-family: 'Varela Round', sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #canvas {
+      position: absolute;
+      width: 120%;
+      height: 120%;
+      left: -10%;
+      top: -10%;
+      z-index: 1;
+    }
+
+    #content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 1000;
+    }
+
+    .text {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #ffedf0;
+      background: rgba(92, 20, 35, 0.6);
+      padding: 15px 25px;
+      border-radius: 20px;
+      border: 2px solid rgba(255, 153, 170, 0.4);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(5px);
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .button {
+      background-color: #a31c36;
+      color: #ffedf0;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 50px;
+      font-size: 1.1em;
+      font-weight: bold;
+      font-family: 'Varela Round', sans-serif;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      overflow: hidden;
+      border: 3px solid #ff5c7c;
+      animation: pulse 1.5s infinite;
+      letter-spacing: 0.5px;
+    }
+
+    .button:before {
+      content: '💖 ';
+      position: absolute;
+      top: 50%;
+      left: 20px;
+      transform: translateY(-50%);
+      font-size: 1.1em;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #bd2342;
+      padding-left: 45px;
+      animation: none;
+      box-shadow: 0 6px 18px rgba(255, 92, 124, 0.4);
+    }
+
+    .button:hover:before {
+      opacity: 1;
+      left: 15px;
+    }
+
+    .button:active {
+      transform: scale(0.95);
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(255, 92, 124, 0.5);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    .card {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(69, 17, 28, 0.95);
+      padding: 30px;
+      border-radius: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      opacity: 0;
+      transition: all 0.5s ease;
+      max-width: 60%;
+      max-height: 70vh;
+      width: 70%;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid rgba(255, 92, 124, 0.4);
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .card::-webkit-scrollbar {
+      display: none;
+    }
+
+    .card-text {
+      font-family: 'GLIWA', 'Varela Round', sans-serif;
+      font-size: 1.5em;
+      font-weight: 700;
+      -webkit-text-stroke: 0.4px #ffd1dc;
+      color: #ffd1dc;
+      text-align: center;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      display: none; /* Скрываем текст до второго нажатия */
+    }
+
+    .card.show-content {
+      justify-content: flex-start;
+      align-items: stretch;
+    }
+
+    @media (max-width: 480px) {
+      .text {
+        font-size: 1.5em;
+        padding: 12px 20px;
+      }
+      .button {
+        font-size: 0.95em;
+        padding: 12px 25px;
+      }
+      .card {
+        max-width: 80%;
+        width: 75%;
+        padding: 20px;
+      }
+      .card-text {
+        font-size: 1.25em;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="canvas" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+      <g id="heart">
+        <path class="o_heart" d="M102.7,12.4C90.5,0.2,71.3-1,57.7,8.8c-13.6-9.9-32.9-8.7-45.2,3.5c-13.6,13.6-13.6,35.8,0,49.3L48.8,98c1.8,1.8,4,2.9,6.3,3.3c3.9,0.9,8.2-0.1,11.2-3.2l36.3-36.3C116.2,48.2,116.2,26,102.7,12.4z" fill="#a31c36"/>
+        <path class="i_heart" d="M74.7,34c-4.6-4.6-11.9-5.1-17.1-1.4c-5.2-3.8-12.5-3.3-17.1,1.3c-5.1,5.1-5.1,13.6,0,18.7l13.8,13.8c0.7,0.7,1.5,1.1,2.4,1.3c1.5,0.3,3.1-0.1,4.2-1.2l13.8-13.8C79.9,47.6,79.9,39.2,74.7,34z" fill="#ff5c7c"/>
+      </g>
+    </defs>
+  </svg>
+
+  <div id="content">
+    <div class="text">Быстрее))</div>
+    <button class="button" onclick="showLove()">Нажми меня</button>
+  </div>
+
+  <div class="card" onclick="openLetter()">
+    <button class="button open-btn" style="pointer-events: none;">Открыть конвертик 💌</button>
+    <div class="card-text"> любимаяяя, я хочу еще раз признаться тебе, как же сильно я тебя люблю ❤️
+
+правда, я даже не представляю, как можно описать словами все то, что я чувствую к тебе. мне кажется, ни в одном языке мира не найдется слов, которые смогут показать, насколько ты для меня дорога и любима. иногда мне даже кажется, что своими поступками у меня не получается показать хотя бы половину того, насколько сильно я тебя люблю..
+
+я люблю тебя больше всего, что у меня есть и что когда-либо было.
+
+ТЫ МОЯ ДЕВУШКА
+ТЫ МОЯ ЛЮБОВЬ
+ТЫ МОЯ БУДУЩАЯ ЖЕНААА
+ТЫ МОЕ СЧАСТЬЕ 💍
+
+ты разделила мою жизнь на до и после. до тебя я просто существовал. каждый день был каким-то одинаковым, скучным и пустым… я не видел своего будущего, не понимал, ради чего вообще двигаться дальше. иногда мне казалось, что я никогда не встречу человека, которого смогу полюбить всем сердцем. и знаешь? я мечтал только об одном - найти девушку своей мечты. найти тебя<3
+
+и вот теперь я смотрю на тебя и понимаю, что моя мечта не просто сбылась.!! она оказалась в тысячу раз лучше, чем я вообще мог себе представить. правда)))
+
+я уже даже молиться стал, чтобы у меня появилась такая девушка, как ты. я просил об этом постоянно. и сейчас понимаю что меня услышали)))
+
+ТЫ МОЙ ИДЕАЛ 
+я правда не знаю, какие подобрать слова, чтобы не преуменьшить то, насколько ты невероятная. ты настолько красивая, что иногда мне хочется просто смотреть на тебя и улыбаться. от одного твоего “привееет” у меня сразу появляются бабочки в животе. рядом с тобой самому хочется становиться лучше, потому что ты такая добрая и светлая. ты умеешь заботиться обо мне так, что я чувствую себя самым любимым человеком на свете. каждое твое прикосновение я потом еще очень долго храню у себя в памяти, потому что они такие нежные и теплые. рядом с тобой я чувствую себя как дома, спокойно и уютно. а еще ты такая родная, будто мое сердце знало тебя еще задолго до нашей встречи)))))
+
+ты искренняя. настоящая. смешная. очаровательная. безумно красивая. сексиии хехх))) иногда такая милая, что хочется просто бесконечно обнимать тебя. а иногда я вообще смотрю на тебя и думаю. ну не может человек быть настолько прекрасным. :/ мне правда иногда кажется, будто ты не настоящая, а какой-то очень красивый сон, который однажды взял… и стал моей реальностью ❤️
+
+
+я даже поверить не мог, что девушка из моих снов однажды встретится мне и скажет хотя бы “привет”. для меня это было чем-то невозможным… чем-то фантастическим. но ты не просто сказала мне “привет” ты согласилась стать МОЕЙ девушкой. и это самый лучший подарок, который только могла подарить мне жизнь. подарок, о котором я действительно мечтал всем сердцем >.<
+
+не буду скрывать. я чего только не делал, чтобы однажды встретить тебяяя. я молился, загадывал одно и то же желание на каждый праздник, читал книжки, думал как стать лучше, чтобы понравиться такой девушке, как ты. хехх, даже когда встречал ромашку, всегда гадал на ней))) и вотт… моя мечта сбылась ^^
+
+теперь я рядом с самой красивой, самой желанной и самой любимой девушкой. и сколько бы ты ни говорила обратное, сколько бы ни спорила со мной… я никогда не перестану любоваться тобой!) для меня ты самая красивая девушка во всей вселенной, и никто никогда не сможет занять твое место. я восхищаюсь тобой каждый день. каждый день смотрю на тебя так же влюбленно, как в тот самый вечер, когда ты сказала мне “да”)))
+
+и знаешь, что самое интересное? с того дня я не стал любить тебя меньше. наоборот… с каждым днем моя любовь становится только сильнее. иногда мне кажется, что сильнее уже невозможно… а потом проходит еще один день рядом с тобой, и я понимаю, что ошибался)))
+
+но знаешь… мне абсолютно не важно, куда идти. хоть на край света. главное, чтобы рядом была ты, малышш ❤️ рядом с тобой любое место становится самым лучшим
+
+я готов ради тебя на любые глупости. правда))) 
+
+только чтобы еще раз увидеть твою улыбку. 
+
+божеее… какая же она у тебя красивая. когда ты улыбаешься, мне самому хочется улыбаться без остановки. а твои карие глаза… это вообще отдельная история. это не просто глаза. это две маленькие вселенные, в которых я готов теряться бесконечно. я смотрю в них… и вижу наше будущее. вижу нас вместе. счастливыми, улыбающимися, обнимающими друг друга. и разве может быть по-другому, если рядом с мной ТЫ?)))
+
+рядом с тобой я чувствую себя так спокойно… так тепло… будто я наконец-то оказался дома. будто я маленький ребенок, которого любят больше всего на свете. каждое твое прикосновение, каждый поцелуй, каждое объятие, каждый взгляд, каждое твое “люблю” все это навсегда остается у меня в памяти. я постоянно прокручиваю эти моменты у себя в голове и улыбаюсь как дурачок)))
+
+мне так не хватает тебя сейчас… я безумно скучаю. настолько сильно, что иногда просто хочется взять, крепко-крепко обнять тебя… и больше никогда не отпускать. я каждый день переживаю за тебя. кушала ли ты, выспалась ли, как ты себя чувствуешь, какое у тебя настроение, не грустишь ли… мне важно абсолютно все, что связано с тобой. потому что ТЫ МОЙ ЧЕЛОВЕК. мне важно каждое твое слово, каждая эмоция, каждая улыбка, каждая слезинка. если тебе хорошо - хорошо и мне. если тебе плохо - мне тоже больно
+
+и знай) я всегда рядом, солнышко 💗 даже если между нами сейчас расстояние, мое сердце все равно рядом с тобой ни на шаг дальше))
+
+и спасибо тебе за все воспоминания, которые ты мне оставила. я каждый день вспоминаю, как мы гуляли, держались за ручки, целовались, кушали, обнимались, дурачились, смотрели друг на друга, смеялись… вспоминаю, как ты смотрела на меня. и каждый раз у меня снова появляются бабочки в животе))) это так милооо…
+
+я очень хочу повторить все это снова. хочу сделать наши отношения еще счастливее. хочу прожить с тобой еще миллион таких моментов. хочу просыпаться рядом с тобой. хочу засыпать рядом с тобой. хочу держать тебя за ручку. хочу целовать тебя в лобик. хочу обнимать тебя просто потому, что ты есть. хочу всю жизнь любить только тебя. потому что другой мне не нужно
+
+есть только ТЫ
+
+и всегда будешь только ТЫ>3
+
+я безумно тебя люблю, любимаяяяяя ❤️❤️❤️ 
+
+ты для меня дороже любых денег, дороже любых вещей, дороже всего, что существует в этом мире. ты для меня - целый мир
+
+спасибо тебе за то, что однажды появилась в моей жизни. спасибо за то, что выбрала именно меня. я обещаю делать все, чтобы ты улыбалась как можно чаще. я люблю тебя сегодня. буду любить завтра. через год. через десять лет. и через всю свою жизнь
+
+ты навсегда останешься самым прекрасным, что со мной когда-либо случалось
+ 
+ * целуй тебя солнышко *
+
+я люблю тебя бесконечноооо сильноооооо ❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️</div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+  <script>
+    const canvas = document.getElementById("canvas");
+    let wsvg, hsvg;
+    let count = 0;
+
+    function updateCanvasSize() {
+      wsvg = window.innerWidth * 1.2;
+      hsvg = window.innerHeight * 1.2;
+      canvas.setAttribute("width", wsvg);
+      canvas.setAttribute("height", hsvg);
+      canvas.style.left = "-10%";
+      canvas.style.top = "-10%";
+    }
+
+    updateCanvasSize();
+
+    function createHeart() {
+      const x = Math.random() * wsvg;
+      const y = Math.random() * hsvg;
+
+      const heart = document.createElementNS("http://www.w3.org/2000/svg", "use");
+      heart.setAttribute("href", "#heart");
+      heart.setAttribute("id", `heart-${count}`);
+      heart.setAttribute("transform", `translate(${x}, ${y})`);
+      canvas.appendChild(heart);
+
+      count++;
+      return heart;
+    }
+
+    function animateHeart(heart, delay = 0) {
+      const scale = Math.random() * 0.4 + 0.3;
+      const duration = Math.random() * 0.4 + 0.2;
+
+      gsap.fromTo(heart,
+        { scale: 0, opacity: 1 },
+        {
+          scale: scale,
+          duration: duration,
+          delay: delay,
+          transformOrigin: "50% 50%",
+          ease: "back.out(1.5)",
+        }
+      );
+    }
+
+    function showLove() {
+      const hearts = [];
+      const numHearts = 1000;
+
+      gsap.to("#content", {
+        opacity: 0,
+        duration: 0.5,
+        delay: 1,
+        onComplete: () => {
+          document.getElementById("content").style.display = "none";
+        }
+      });
+
+      for (let i = 0; i < numHearts; i++) {
+        const heart = createHeart();
+        hearts.push(heart);
+        animateHeart(heart, i * 0.002);
+      }
+
+      gsap.to(hearts, {
+        y: -hsvg * 1.5,
+        duration: 2,
+        delay: 2,
+        stagger: 0.001,
+        ease: "power2.in",
+        onComplete: () => {
+          hearts.forEach(heart => heart.remove());
+          showCard();
+        }
+      });
+    }
+
+    function showCard() {
+      const card = document.querySelector('.card');
+      gsap.to(card, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.5,
+        delay: -1,
+        ease: "back.out(1.7)"
+      });
+    }
+
+    let isOpened = false;
+    function openLetter() {
+      if (isOpened) return;
+      isOpened = true;
+
+      const card = document.querySelector('.card');
+      const openBtn = document.querySelector('.open-btn');
+      const cardText = document.querySelector('.card-text');
+
+      card.classList.add('show-content');
+
+      // Анимация исчезновения кнопки и появления текста
+      gsap.to(openBtn, {
+        scale: 0,
+        opacity: 0,
+        duration: 0.3,
+        onComplete: () => {
+          openBtn.style.display = 'none';
+          cardText.style.display = 'block';
+          gsap.fromTo(cardText, 
+            { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: 0.5 }
+          );
+        }
+      });
+    }
+
+    function generateBackgroundHearts() {
+      setInterval(() => {
+        const heart = createHeart();
+        animateHeart(heart);
+        gsap.to(heart, {
+          y: -hsvg,
+          duration: 4,
+          ease: "power1.in",
+          onComplete: () => heart.remove()
+        });
+      }, 200);
+    }
+
+    generateBackgroundHearts();
+
+    window.addEventListener("resize", updateCanvasSize);
+    window.addEventListener("orientationchange", updateCanvasSize);
+  </script>
+</body>
+</html>
